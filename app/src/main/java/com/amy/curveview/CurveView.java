@@ -201,23 +201,23 @@ public class CurveView extends View {
      * @param pEnd      结束点
      * @return
      */
-
+    float rate=3f;
     private Point getControPoint(List<Point> localList, int index, Point pStart, Point pEnd) {
         Point control = new Point();
         int xhalf = (pStart.getX() + pEnd.getX()) / 2;
         int yhalf = (pStart.getY() + pEnd.getY()) / 2;
         int x = localList.get(index).getxPercent();
         if (index == 0 || index == 3) {
-            control.setY(yhalf + 10);
-            control.setX(xhalf + 10);
+            control.setY((int) (yhalf + 10*rate));
+            control.setX((int) (xhalf + 10*rate));
         } else {
             if (index == 1) {
-                control.setX(xhalf + 10);
+                control.setX((int) (xhalf + 10*rate));
             }
             if (index == 2) {
-                control.setX(xhalf - 10);
+                control.setX((int) (xhalf - 10*rate));
             }
-            control.setY(yhalf - 40);
+            control.setY((int) (yhalf - 40*rate));
         }
 
         return control;
