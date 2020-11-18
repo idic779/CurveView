@@ -11,7 +11,6 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PathMeasure;
 import android.graphics.Rect;
-import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -49,7 +48,10 @@ public class CurveView extends View {
     //边框的右边距
     private float mBrokenLinerRight = 20;
 
-    private int CURRENT_TYPE = 2;
+    private int currentType = TYPE_TWO;
+    private final static int TYPE_ONE=1;
+    private final static int TYPE_TWO=2;
+
     private static int WAVE_OFFSET = 5;
     private int mCurWaveOffset = 0;
     private int mPath2Offset = 0;
@@ -152,16 +154,8 @@ public class CurveView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         initXY();
-        float length = mBoatPathMeasure.getLength();
-        mBoatPathMeasure.getMatrix(length * currentValue,
-                mMatrix,
-                PathMeasure.POSITION_MATRIX_FLAG | PathMeasure.TANGENT_MATRIX_FLAG);
-        mMatrix.preTranslate(-mBoatBitmap.getWidth() / 2, -mBoatBitmap.getHeight() * 5 / 6);
-        canvas.drawBitmap(mBoatBitmap, mMatrix, null);
-
-        DrawDesText(canvas);//画描述文字
-        drawBorderLineAndText(canvas);
-        drawCurve(canvas);//画折线
+        drawBorderLineAndText(canvas);//画边框线
+        drawCurve(canvas);//画曲线
     }
 
     /**
@@ -224,7 +218,7 @@ public class CurveView extends View {
     }
 
 
-    private void DrawDesText(Canvas canvas) {
+    private void drawDesText(Canvas canvas) {
         for (int i = 0; i < localList.size(); i++) {
             Point point = localList.get(i);
             if (!point.isShowDesc()) {
@@ -259,19 +253,12 @@ public class CurveView extends View {
 
     private void drawCurve(Canvas canvas) {
         paintCurve.setColor(getResources().getColor(R.color.lineColor));
-        if (CURRENT_TYPE == 1) {
+        if (currentType == TYPE_ONE) {
+            drawDesText(canvas);//画描述文字
             paintCurve.setStyle(Paint.Style.STROKE);
             paintCurve.setDither(true);
             paintCurve.setStrokeWidth(10);
-            paintCurve.setColor(ContextCompat.getColor(mContext, R.color.white1));
-            //绘制灰色圆角背景色
-            RectF rectF = new RectF();
-            rectF.left = 0;
-            rectF.top = 0;
-            rectF.right = width;
-            rectF.bottom = height;
-            canvas.drawRoundRect(rectF, 15, 15, paintCurve);
-            paintCurve.setStyle(Paint.Style.STROKE);
+            paintCurve.setColor(ContextCompat.getColor(mContext, R.color.white));
             for (int i = 0; i <= (localList.size() - 1); i++) {
                 Path path = new Path();
                 if (localList.size() > i + 1) {
@@ -279,14 +266,21 @@ public class CurveView extends View {
                     Point pEnd = localList.get(i + 1);
                     Point point5 = getControPoint(localList, i, pStart, pEnd);
                     paintCurve.setColor(pStart.getLineColor());
-                    path.moveTo(pStart.getX() - mCurWaveOffset, pStart.getY());
-                    path.quadTo(point5.getX() - mCurWaveOffset, point5.getY(), pEnd.getX() - mCurWaveOffset,
+                    path.moveTo(pStart.getX(), pStart.getY());
+                    path.quadTo(point5.getX(), point5.getY(), pEnd.getX(),
                             pEnd.getY());
                     canvas.drawPath(path, paintCurve);
                 }
             }
         }
-        if (CURRENT_TYPE == 2) {
+        if (currentType == TYPE_TWO) {
+            paintCurve.setStyle(Paint.Style.FILL);
+            float length = mBoatPathMeasure.getLength();
+            mBoatPathMeasure.getMatrix(length * currentValue,
+                    mMatrix,
+                    PathMeasure.POSITION_MATRIX_FLAG | PathMeasure.TANGENT_MATRIX_FLAG);
+            mMatrix.preTranslate(-mBoatBitmap.getWidth() / 2, -mBoatBitmap.getHeight() * 5 / 6);
+            canvas.drawBitmap(mBoatBitmap, mMatrix, null);
             canvas.save();
             canvas.translate(-mCurWaveOffset, 0);
             paintCurve.setColor(ContextCompat.getColor(mContext, R.color.colorPrimary));
@@ -331,7 +325,7 @@ public class CurveView extends View {
         localList.clear();
         List<Float> yPercent = new ArrayList<>();
         List<Integer> xPercent = new ArrayList<>();
-        if (CURRENT_TYPE == 1) {
+        if (currentType == TYPE_ONE) {
             yPercent.add(23f);
             yPercent.add(26f);
             yPercent.add(48f);
@@ -344,7 +338,7 @@ public class CurveView extends View {
             xPercent.add(85);
             xPercent.add(100);
         }
-        if (CURRENT_TYPE == 2) {
+        if (currentType == TYPE_TWO) {
             for (int i = 0; i < 10; i++) {
                 if (i % 2 == 0) {
                     yPercent.add(40f);
@@ -397,5 +391,13 @@ public class CurveView extends View {
         mAnimator.cancel();
     }
 
+    public void switchType() {
+        if (currentType == TYPE_ONE) {
+            currentType =TYPE_TWO;
+        }else{
+            currentType =TYPE_ONE;
+        }
+        requestLayout();
+    }
 
 }
